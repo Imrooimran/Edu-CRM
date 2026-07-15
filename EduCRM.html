@@ -1,0 +1,1086 @@
+
+<title>EduCRM — Course & Student Lead Tracker</title>
+<style>
+/* ── LOCK SCREEN ── */
+#lockScreen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg, #F7F6FF);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.lock-card {
+  background: #fff; border: 1px solid #DDD9F5; border-radius: 16px;
+  padding: 40px 36px; width: 100%; max-width: 360px;
+  box-shadow: 0 8px 40px rgba(30,20,80,.12); text-align: center;
+}
+.lock-icon { font-size: 40px; margin-bottom: 12px; }
+.lock-title { font-size: 20px; font-weight: 800; color: #1A1730; margin-bottom: 4px; }
+.lock-sub { font-size: 13px; color: #6E6A90; margin-bottom: 24px; }
+.lock-input-wrap { position: relative; margin-bottom: 12px; }
+.lock-input-wrap input {
+  width: 100%; padding: 12px 44px 12px 14px;
+  border: 1.5px solid #DDD9F5; border-radius: 8px;
+  font-size: 15px; color: #1A1730; background: #F7F6FF;
+  outline: none; letter-spacing: .1em;
+  transition: border-color .15s;
+}
+.lock-input-wrap input:focus { border-color: #5B21B6; }
+.lock-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 16px; color: #6E6A90; background: none; border: none; }
+.lock-btn {
+  width: 100%; padding: 12px; background: #5B21B6; color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: background .15s;
+}
+.lock-btn:hover { background: #7C3AED; }
+.lock-err { color: #DC2626; font-size: 12px; font-weight: 600; margin-top: 8px; min-height: 18px; }
+.lock-hint { font-size: 11px; color: #6E6A90; margin-top: 16px; }
+@media (prefers-color-scheme: dark) {
+  #lockScreen { background: #0E0C1A; }
+  .lock-card { background: #1A1730; border-color: #2C2850; }
+  .lock-title { color: #E8E4FF; }
+  .lock-input-wrap input { background: #0E0C1A; border-color: #2C2850; color: #E8E4FF; }
+}
+</style>
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:       #F7F6FF;
+  --bg2:      #EEEDF8;
+  --surf:     #FFFFFF;
+  --surf2:    #F2F1FC;
+  --border:   #DDD9F5;
+  --text:     #1A1730;
+  --muted:    #6E6A90;
+  --accent:   #5B21B6;
+  --accent-l: #7C3AED;
+  --accent-bg:#EDE9FE;
+  --green:    #059669;
+  --green-bg: #D1FAE5;
+  --amber:    #B45309;
+  --amber-bg: #FEF3C7;
+  --red:      #DC2626;
+  --red-bg:   #FEE2E2;
+  --blue:     #1D4ED8;
+  --blue-bg:  #DBEAFE;
+  --pink:     #BE185D;
+  --pink-bg:  #FCE7F3;
+  --slate:    #475569;
+  --slate-bg: #F1F5F9;
+  --r:        8px;
+  --sh:       0 1px 3px rgba(30,20,80,.07), 0 1px 2px rgba(30,20,80,.05);
+  --sh2:      0 4px 16px rgba(30,20,80,.10);
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg:#0E0C1A; --bg2:#151228; --surf:#1A1730; --surf2:#221E3A;
+  --border:#2C2850; --text:#E8E4FF; --muted:#8880AA;
+  --accent:#A78BFA; --accent-l:#C4B5FD; --accent-bg:#2E1B5E;
+  --green:#34D399; --green-bg:#0A2E20; --amber:#FCD34D; --amber-bg:#2A1F00;
+  --red:#F87171; --red-bg:#2D0A0A; --blue:#93C5FD; --blue-bg:#0D1F3C;
+  --pink:#F9A8D4; --pink-bg:#2D0B20; --slate:#94A3B8; --slate-bg:#1E2530;
+  --sh:0 1px 3px rgba(0,0,0,.3); --sh2:0 4px 16px rgba(0,0,0,.35);
+}}
+:root[data-theme="light"] {
+  --bg:#F7F6FF; --bg2:#EEEDF8; --surf:#FFFFFF; --surf2:#F2F1FC;
+  --border:#DDD9F5; --text:#1A1730; --muted:#6E6A90;
+  --accent:#5B21B6; --accent-l:#7C3AED; --accent-bg:#EDE9FE;
+  --green:#059669; --green-bg:#D1FAE5; --amber:#B45309; --amber-bg:#FEF3C7;
+  --red:#DC2626; --red-bg:#FEE2E2; --blue:#1D4ED8; --blue-bg:#DBEAFE;
+  --pink:#BE185D; --pink-bg:#FCE7F3; --slate:#475569; --slate-bg:#F1F5F9;
+  --sh:0 1px 3px rgba(30,20,80,.07); --sh2:0 4px 16px rgba(30,20,80,.10);
+}
+:root[data-theme="dark"] {
+  --bg:#0E0C1A; --bg2:#151228; --surf:#1A1730; --surf2:#221E3A;
+  --border:#2C2850; --text:#E8E4FF; --muted:#8880AA;
+  --accent:#A78BFA; --accent-l:#C4B5FD; --accent-bg:#2E1B5E;
+  --green:#34D399; --green-bg:#0A2E20; --amber:#FCD34D; --amber-bg:#2A1F00;
+  --red:#F87171; --red-bg:#2D0A0A; --blue:#93C5FD; --blue-bg:#0D1F3C;
+  --pink:#F9A8D4; --pink-bg:#2D0B20; --slate:#94A3B8; --slate-bg:#1E2530;
+  --sh:0 1px 3px rgba(0,0,0,.3); --sh2:0 4px 16px rgba(0,0,0,.35);
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* ── TOP BAR ── */
+.topbar { background: var(--surf); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; box-shadow: var(--sh); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.brand-name { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: var(--text); }
+.brand-name span { color: var(--accent); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.sheets-btn { display: flex; align-items: center; gap: 6px; padding: 7px 13px; background: var(--green-bg); color: var(--green); border: 1px solid color-mix(in srgb, var(--green) 25%, transparent); border-radius: var(--r); font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+.sheets-btn:hover { opacity: .8; }
+.sheets-icon { font-size: 14px; }
+
+/* ── NAV TABS ── */
+.nav { background: var(--surf); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; }
+.nav-tab { padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; cursor: pointer; transition: color .15s, border-color .15s; white-space: nowrap; }
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; background: var(--accent-bg); color: var(--accent); border-radius: 100px; font-size: 10px; font-weight: 800; margin-left: 6px; }
+
+/* ── LAYOUT ── */
+.page { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── STATS ROW ── */
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--sh); }
+.stat-eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 6px; }
+.stat-val { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* ── TOOLBAR ── */
+.toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-wrap input { width: 100%; background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); padding: 8px 10px 8px 33px; color: var(--text); font-size: 13px; outline: none; transition: border-color .15s; }
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--muted); }
+.search-ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.fsel { background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); padding: 8px 10px; color: var(--text); font-size: 13px; outline: none; cursor: pointer; }
+.fsel:focus { border-color: var(--accent); }
+
+/* ── BUTTONS ── */
+.btn { padding: 8px 16px; border-radius: var(--r); border: none; cursor: pointer; font-size: 13px; font-weight: 700; transition: background .15s, transform .08s; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-l); }
+.btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 6px; font-weight: 700; }
+.btn-ghost { background: var(--surf2); border: 1px solid var(--border); color: var(--text); }
+.btn-edit { background: var(--accent-bg); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent); }
+.btn-del  { background: var(--red-bg); color: var(--red); border: 1px solid color-mix(in srgb, var(--red) 20%, transparent); }
+
+/* ── TABLE ── */
+.tcard { background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: var(--surf2); padding: 9px 13px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surf2); }
+tbody td { padding: 10px 13px; vertical-align: middle; }
+.tw { overflow-x: auto; }
+
+/* ── AVATAR ── */
+.av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; color: #fff; flex-shrink: 0; }
+.av-cell { display: flex; align-items: center; gap: 9px; }
+.av-name { font-weight: 700; font-size: 13px; }
+.av-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* ── BADGES ── */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.b-inquiry   { background: var(--blue-bg);  color: var(--blue); }
+.b-trial     { background: var(--amber-bg); color: var(--amber); }
+.b-enrolled  { background: var(--accent-bg);color: var(--accent); }
+.b-active    { background: var(--green-bg); color: var(--green); }
+.b-completed { background: var(--slate-bg); color: var(--slate); }
+.b-dropped   { background: var(--red-bg);   color: var(--red); }
+.b-prospect  { background: var(--blue-bg);  color: var(--blue); }
+.b-negotiation { background: var(--amber-bg); color: var(--amber); }
+.b-won       { background: var(--green-bg); color: var(--green); }
+.b-lost      { background: var(--red-bg);   color: var(--red); }
+.ch-pill { display: inline-block; background: var(--surf2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; font-size: 11px; color: var(--muted); }
+.due-soon { color: var(--amber); font-weight: 700; }
+.overdue  { color: var(--red);   font-weight: 700; }
+
+/* ── AMOUNT ── */
+.amt { font-variant-numeric: tabular-nums; font-weight: 700; }
+.bal-warn { color: var(--red); }
+.bal-ok   { color: var(--green); }
+
+/* ── PAGINATION ── */
+.pag { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.pag-btns { display: flex; gap: 4px; }
+.pb { padding: 4px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--surf); color: var(--text); cursor: pointer; font-size: 12px; font-weight: 600; }
+.pb:hover { border-color: var(--accent); color: var(--accent); }
+.pb.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pb:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── MODAL ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(10,8,30,.55); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+.overlay.open { display: flex; }
+.modal { background: var(--surf); border-radius: 12px; width: 100%; max-width: 560px; max-height: 92vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(10,8,30,.3); }
+.mh { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.mh-title { font-size: 15px; font-weight: 800; }
+.mclose { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; }
+.mclose:hover { color: var(--text); }
+.mbody { padding: 16px 20px; overflow-y: auto; display: grid; gap: 13px; }
+.mfoot { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.fg input, .fg select, .fg textarea {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px; color: var(--text); font-size: 13px; font-family: inherit; outline: none;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--accent); }
+.fg textarea { resize: vertical; min-height: 64px; }
+.section-divider { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--accent); padding-bottom: 4px; border-bottom: 1px solid var(--border); margin-top: 2px; }
+
+/* ── DETAIL PANEL ── */
+.dp-overlay { display: none; position: fixed; inset: 0; background: rgba(10,8,30,.35); z-index: 100; }
+.dp-overlay.open { display: block; }
+.dp { position: fixed; right: 0; top: 0; bottom: 0; width: 380px; background: var(--surf); border-left: 1px solid var(--border); z-index: 110; overflow-y: auto; padding: 0; box-shadow: -6px 0 32px rgba(10,8,30,.15); transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); }
+.dp.open { transform: translateX(0); }
+.dp-head { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; position: sticky; top: 0; background: var(--surf); z-index: 10; }
+.dp-head-left { display: flex; align-items: center; gap: 12px; }
+.dp-name { font-size: 16px; font-weight: 800; }
+.dp-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dp-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; flex-shrink: 0; }
+.dp-body { padding: 16px 20px; display: grid; gap: 16px; }
+.dp-sec-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 8px; }
+.dp-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.dp-row:last-child { border-bottom: none; }
+.dp-key { color: var(--muted); }
+.dp-val { font-weight: 700; text-align: right; max-width: 200px; }
+.dp-note { background: var(--surf2); border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--text); }
+.dp-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.dp-tag { background: var(--accent-bg); color: var(--accent); border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.dp-actions { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border); }
+.dp-actions .btn { flex: 1; }
+
+/* ── PIPELINE VIEW ── */
+.kanban { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.kol { background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; box-shadow: var(--sh); }
+.kol-head { padding: 10px 12px 8px; border-bottom: 1px solid var(--border); }
+.kol-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; }
+.kol-count { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.kol-body { padding: 8px; display: grid; gap: 6px; min-height: 120px; }
+.kcard { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 9px 10px; cursor: pointer; transition: box-shadow .15s, transform .1s; }
+.kcard:hover { box-shadow: var(--sh2); transform: translateY(-1px); }
+.kcard-name { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+.kcard-course { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.kcard-amt { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ── CHANNELS VIEW ── */
+.ch-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.ch-card { background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; box-shadow: var(--sh); }
+.ch-name { font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+.ch-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 12px; }
+.ch-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.ch-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+.ch-stats { display: flex; gap: 16px; margin-top: 10px; }
+.ch-stat { font-size: 11px; }
+.ch-stat-val { font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+/* ── SHEETS SYNC PANEL ── */
+.sync-card { background: var(--surf); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; box-shadow: var(--sh); max-width: 640px; }
+.sync-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+.sync-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.sync-url-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.sync-url-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; color: var(--text); font-size: 13px; outline: none; }
+.sync-url-row input:focus { border-color: var(--accent); }
+.export-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.exp-btn { display: flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: var(--r); font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--surf2); color: var(--text); transition: background .15s; }
+.exp-btn:hover { background: var(--bg2); }
+.steps { margin-top: 20px; display: grid; gap: 10px; }
+.step { display: flex; gap: 12px; align-items: flex-start; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.step-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.step-text strong { color: var(--text); font-weight: 700; }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+.empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1A1730; color: #fff; padding: 10px 18px; border-radius: 100px; font-size: 13px; font-weight: 600; z-index: 999; transition: transform .3s cubic-bezier(.4,0,.2,1); white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(3, 1fr); } .kanban { grid-template-columns: repeat(3, 1fr); } .ch-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .frow { grid-template-columns: 1fr; } .dp { width: 100%; } .kanban { grid-template-columns: repeat(2, 1fr); } }
+</style>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">EduCRM</div>
+    <div class="lock-sub">Enter your password to continue</div>
+    <div class="lock-input-wrap">
+      <input type="password" id="lockInput" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()">
+      <button class="lock-eye" id="lockEye" onclick="togglePwd()">👁</button>
+    </div>
+    <button class="lock-btn" onclick="unlock()">Unlock</button>
+    <div class="lock-err" id="lockErr"></div>
+    <div class="lock-hint">Session stays unlocked until you close the tab</div>
+  </div>
+</div>
+
+<script>
+  // ── CHANGE PASSWORD HERE ──
+  const CRM_PASSWORD = 'Admin-777';
+
+  // Check session
+  if (sessionStorage.getItem('crm_unlocked') === '1') {
+    document.getElementById('lockScreen').style.display = 'none';
+  }
+
+  function unlock() {
+    const val = document.getElementById('lockInput').value;
+    if (val === CRM_PASSWORD) {
+      sessionStorage.setItem('crm_unlocked', '1');
+      const ls = document.getElementById('lockScreen');
+      ls.style.transition = 'opacity .3s';
+      ls.style.opacity = '0';
+      setTimeout(() => ls.style.display = 'none', 300);
+    } else {
+      const err = document.getElementById('lockErr');
+      err.textContent = 'Incorrect password. Try again.';
+      document.getElementById('lockInput').value = '';
+      document.getElementById('lockInput').focus();
+      setTimeout(() => err.textContent = '', 3000);
+    }
+  }
+
+  function togglePwd() {
+    const inp = document.getElementById('lockInput');
+    const eye = document.getElementById('lockEye');
+    if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+    else { inp.type = 'password'; eye.textContent = '👁'; }
+  }
+</script>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">📚</div>
+    <div class="brand-name">Edu<span>CRM</span></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="sheets-btn" onclick="showTab('sync')">
+      <span class="sheets-icon">📊</span> Sheets Sync
+    </button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-tab active" onclick="showTab('students', this)">Students <span class="nav-count" id="nc-students">0</span></div>
+  <div class="nav-tab" onclick="showTab('pipeline', this)">Pipeline</div>
+  <div class="nav-tab" onclick="showTab('clients', this)">Clients <span class="nav-count" id="nc-clients">0</span></div>
+  <div class="nav-tab" onclick="showTab('channels', this)">Channels</div>
+  <div class="nav-tab" onclick="showTab('sync', this)">📊 Sheets Sync</div>
+</div>
+
+<!-- MAIN -->
+<div class="page">
+
+  <!-- STUDENTS TAB -->
+  <div id="tab-students" class="section active">
+    <div class="stats-row" id="stu-stats"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-ic">⌕</span>
+        <input id="stu-q" placeholder="Search name, email, course…" oninput="renderStudents()">
+      </div>
+      <select class="fsel" id="stu-stage" onchange="renderStudents()">
+        <option value="">All Stages</option>
+        <option>Inquiry</option><option>Trial</option><option>Enrolled</option>
+        <option>Active</option><option>Completed</option><option>Dropped</option>
+      </select>
+      <select class="fsel" id="stu-course" onchange="renderStudents()">
+        <option value="">All Courses</option>
+      </select>
+      <select class="fsel" id="stu-src" onchange="renderStudents()">
+        <option value="">All Sources</option>
+        <option>Instagram</option><option>Referral</option><option>YouTube</option>
+        <option>WhatsApp</option><option>Facebook</option><option>Website</option><option>Google Ads</option>
+      </select>
+      <select class="fsel" id="stu-sort" onchange="renderStudents()">
+        <option value="name">Sort: Name</option>
+        <option value="fee">Sort: Fee ↓</option>
+        <option value="balance">Sort: Balance ↓</option>
+        <option value="followup">Sort: Follow-up</option>
+        <option value="enrolled">Sort: Enrolled</option>
+      </select>
+      <button class="btn btn-primary" onclick="openStudentModal()">+ Add Student</button>
+    </div>
+    <div class="tcard">
+      <div class="tw">
+        <table>
+          <thead><tr>
+            <th>Student</th><th>Course</th><th>Stage</th><th>Source</th>
+            <th>Fees (INR)</th><th>Paid</th><th>Balance</th>
+            <th>Follow-up</th><th style="text-align:right">Actions</th>
+          </tr></thead>
+          <tbody id="stu-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pag" id="stu-pag"></div>
+    </div>
+  </div>
+
+  <!-- PIPELINE TAB -->
+  <div id="tab-pipeline" class="section">
+    <div class="kanban" id="kanban"></div>
+  </div>
+
+  <!-- CLIENTS TAB -->
+  <div id="tab-clients" class="section">
+    <div class="stats-row" id="cli-stats"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-ic">⌕</span>
+        <input id="cli-q" placeholder="Search company, contact, course…" oninput="renderClients()">
+      </div>
+      <select class="fsel" id="cli-stage" onchange="renderClients()">
+        <option value="">All Stages</option>
+        <option>Prospect</option><option>Negotiation</option><option>Won</option><option>Lost</option>
+      </select>
+      <button class="btn btn-primary" onclick="openClientModal()">+ Add Client</button>
+    </div>
+    <div class="tcard">
+      <div class="tw">
+        <table>
+          <thead><tr>
+            <th>Client / Contact</th><th>Course / Program</th><th>Team Size</th>
+            <th>Contract (INR)</th><th>Stage</th><th>Follow-up</th>
+            <th style="text-align:right">Actions</th>
+          </tr></thead>
+          <tbody id="cli-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pag" id="cli-pag"></div>
+    </div>
+  </div>
+
+  <!-- CHANNELS TAB -->
+  <div id="tab-channels" class="section">
+    <div class="ch-grid" id="ch-grid"></div>
+  </div>
+
+  <!-- SYNC TAB -->
+  <div id="tab-sync" class="section">
+    <div class="sync-card" style="margin-bottom:16px">
+      <div class="sync-title">📊 Google Sheets — Auto Sync</div>
+      <div class="sync-desc">Paste your Apps Script URL once. After that, every time you add, edit, or delete a student or client — the sheet updates <strong>automatically</strong>.</div>
+
+      <div class="fg" style="margin-bottom:10px">
+        <label>Apps Script Web App URL</label>
+        <div class="sync-url-row">
+          <input id="sheets-url" placeholder="https://script.google.com/macros/s/…/exec" oninput="saveSheetUrl()">
+          <button class="btn btn-primary" onclick="pushToSheets(true)">Sync Now</button>
+        </div>
+      </div>
+
+      <div id="sync-status" style="display:none;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px"></div>
+
+      <div class="export-btns">
+        <button class="exp-btn" onclick="exportCSV('students')">⬇ Export Students CSV</button>
+        <button class="exp-btn" onclick="exportCSV('clients')">⬇ Export Clients CSV</button>
+      </div>
+
+      <div class="steps" style="margin-top:16px">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:6px">One-time Setup</div>
+        <div class="step"><div class="step-num">1</div><div class="step-text">Open your Google Sheet → <strong>Extensions → Apps Script</strong></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Delete existing code, paste the script below, click <strong>Save</strong></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Deploy → New deployment → Web App</strong> → Execute as: Me → Who has access: <strong>Anyone</strong> → Deploy</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Copy the Web App URL, paste above, click <strong>Sync Now</strong> — done! Sheet updates automatically from now on.</div></div>
+      </div>
+    </div>
+
+    <div class="tcard" style="max-width:640px">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Apps Script Code</span>
+        <button class="btn btn-sm btn-ghost" onclick="copyScript()">Copy</button>
+      </div>
+      <pre id="appsScriptCode" style="padding:16px;font-size:12px;overflow-x:auto;color:var(--text);background:var(--surf2);line-height:1.6;white-space:pre-wrap">function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // ── Students ──
+    var s1 = ss.getSheetByName('Students') || ss.insertSheet('Students');
+    s1.clearContents();
+    s1.appendRow(['Name','Phone','Email','Course','Batch','Stage','Source',
+                  'Fees (INR)','Paid (INR)','Balance (INR)','Enrolled','Follow-up','Notes']);
+    data.students.forEach(function(r) {
+      s1.appendRow([r.name, r.phone, r.email||'', r.course, r.batch||'',
+                    r.stage, r.source, r.fee, r.paid, r.fee - r.paid,
+                    r.enrolled||'', r.followup||'', r.notes||'']);
+    });
+
+    // ── Clients ──
+    var s2 = ss.getSheetByName('Clients') || ss.insertSheet('Clients');
+    s2.clearContents();
+    s2.appendRow(['Company','Contact','Email','Phone','Course','Team Size',
+                  'Contract (INR)','Stage','Follow-up','Notes']);
+    data.clients.forEach(function(r) {
+      s2.appendRow([r.company, r.contact, r.email||'', r.phone||'',
+                    r.course, r.teamSize||0, r.contract,
+                    r.stage, r.followup||'', r.notes||'']);
+    });
+
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'ok'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'error', message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ready'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- STUDENT MODAL -->
+<div class="overlay" id="stu-overlay">
+  <div class="modal">
+    <div class="mh"><div class="mh-title" id="stu-modal-title">Add Student</div><button class="mclose" onclick="closeStuModal()">×</button></div>
+    <div class="mbody">
+      <div class="section-divider">Personal Info</div>
+      <div class="frow">
+        <div class="fg"><label>Full Name *</label><input id="sf_name" placeholder="Ananya Sharma"></div>
+        <div class="fg"><label>Phone *</label><input id="sf_phone" placeholder="+91 98765 43210"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Email</label><input id="sf_email" type="email" placeholder="ananya@email.com"></div>
+        <div class="fg"><label>Source</label>
+          <select id="sf_src"><option>Instagram</option><option>Referral</option><option>YouTube</option><option>WhatsApp</option><option>Facebook</option><option>Website</option><option>Google Ads</option></select>
+        </div>
+      </div>
+      <div class="section-divider">Course Details</div>
+      <div class="frow">
+        <div class="fg"><label>Course *</label><input id="sf_course" placeholder="Graphic Design Masterclass"></div>
+        <div class="fg"><label>Batch / Schedule</label><input id="sf_batch" placeholder="Weekend Batch — July 2026"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Stage</label>
+          <select id="sf_stage"><option>Inquiry</option><option>Trial</option><option>Enrolled</option><option>Active</option><option>Completed</option><option>Dropped</option></select>
+        </div>
+        <div class="fg"><label>Enrollment Date</label><input id="sf_enrolled" type="date"></div>
+      </div>
+      <div class="section-divider">Financials</div>
+      <div class="frow">
+        <div class="fg"><label>Total Fees (₹)</label><input id="sf_fee" type="number" placeholder="15000"></div>
+        <div class="fg"><label>Amount Paid (₹)</label><input id="sf_paid" type="number" placeholder="7500"></div>
+      </div>
+      <div class="section-divider">Follow-up</div>
+      <div class="frow">
+        <div class="fg"><label>Next Follow-up Date</label><input id="sf_followup" type="date"></div>
+        <div class="fg"><label>Tags</label><input id="sf_tags" placeholder="scholarship, repeat-inquiry"></div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="sf_notes" placeholder="Key details, objections, preferences…"></textarea></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeStuModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="overlay" id="cli-overlay">
+  <div class="modal">
+    <div class="mh"><div class="mh-title" id="cli-modal-title">Add Client</div><button class="mclose" onclick="closeCliModal()">×</button></div>
+    <div class="mbody">
+      <div class="section-divider">Company Info</div>
+      <div class="frow">
+        <div class="fg"><label>Company Name *</label><input id="cf_company" placeholder="Infosys BPO"></div>
+        <div class="fg"><label>Contact Person *</label><input id="cf_contact" placeholder="Ravi Shankar"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Email</label><input id="cf_email" type="email" placeholder="ravi@infosys.com"></div>
+        <div class="fg"><label>Phone</label><input id="cf_phone" placeholder="+91 80 1234 5678"></div>
+      </div>
+      <div class="section-divider">Program Details</div>
+      <div class="frow">
+        <div class="fg"><label>Course / Program *</label><input id="cf_course" placeholder="Data Analytics Workshop"></div>
+        <div class="fg"><label>Team Size</label><input id="cf_team" type="number" placeholder="20"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Contract Value (₹)</label><input id="cf_contract" type="number" placeholder="200000"></div>
+        <div class="fg"><label>Stage</label>
+          <select id="cf_stage"><option>Prospect</option><option>Negotiation</option><option>Won</option><option>Lost</option></select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Next Follow-up Date</label><input id="cf_followup" type="date"></div>
+        <div class="fg"><label>Tags</label><input id="cf_tags" placeholder="enterprise, b2b, repeat"></div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="cf_notes" placeholder="Requirements, decision timeline, budget notes…"></textarea></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeCliModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClient()">Save Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="dp-overlay" id="dp-overlay" onclick="closeDetail()"></div>
+<div class="dp" id="dp">
+  <div id="dp-content"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const COLORS=['#5B21B6','#BE185D','#1D4ED8','#B45309','#059669','#0891B2','#DC2626','#7C3AED'];
+function ac(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))%COLORS.length;return COLORS[h];}
+function ini(n){return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();}
+function inr(v){if(!v&&v!==0)return'—';return'₹'+Number(v).toLocaleString('en-IN');}
+function today(){return new Date().toISOString().slice(0,10);}
+function daysDiff(d){if(!d)return null;return Math.ceil((new Date(d)-new Date(today()))/(1000*60*60*24));}
+function fmtDate(d){if(!d)return'—';const p=d.split('-');return `${p[2]}/${p[1]}/${p[0]}`;}
+
+let students=[
+  {id:1,name:'Ananya Sharma',phone:'+91 98765 43210',email:'ananya@gmail.com',course:'Graphic Design Masterclass',batch:'Weekend — July 2026',stage:'Active',source:'Instagram',fee:18000,paid:18000,enrolled:'2026-05-15',followup:'2026-07-20',tags:['scholarship'],notes:'Top performer. Interested in advanced batch.',date:'2026-05-15'},
+  {id:2,name:'Rohan Mehta',phone:'+91 87654 32109',email:'rohan.m@yahoo.in',course:'UI/UX Bootcamp',batch:'Weekday — June 2026',stage:'Enrolled',source:'YouTube',fee:25000,paid:12500,enrolled:'2026-06-01',followup:'2026-07-16',tags:['emi'],notes:'Opted for 2-installment plan.',date:'2026-06-01'},
+  {id:3,name:'Priya Nair',phone:'+91 76543 21098',email:'priya.nair@email.com',course:'Digital Marketing',batch:'Weekend — Aug 2026',stage:'Inquiry',source:'Referral',fee:12000,paid:0,enrolled:'',followup:'2026-07-17',tags:['hot-lead'],notes:'Referred by Ananya. Very interested, needs parent approval.',date:'2026-07-10'},
+  {id:4,name:'Arjun Patel',phone:'+91 65432 10987',email:'arjun.p@gmail.com',course:'Python for Beginners',batch:'Weekend — July 2026',stage:'Trial',source:'Google Ads',fee:8000,paid:0,enrolled:'',followup:'2026-07-18',tags:[],notes:'Attended free webinar. Booked trial class.',date:'2026-07-12'},
+  {id:5,name:'Sneha Iyer',phone:'+91 54321 09876',email:'sneha.i@outlook.com',course:'Graphic Design Masterclass',batch:'Weekend — May 2026',stage:'Completed',source:'WhatsApp',fee:18000,paid:18000,enrolled:'2026-02-01',followup:'',tags:['alumni'],notes:'Completed with distinction. Asked about advanced batch.',date:'2026-02-01'},
+  {id:6,name:'Vikram Singh',phone:'+91 43210 98765',email:'vikram.s@gmail.com',course:'UI/UX Bootcamp',batch:'Weekday — Apr 2026',stage:'Dropped',source:'Facebook',fee:25000,paid:5000,enrolled:'2026-04-01',followup:'2026-08-01',tags:['winback'],notes:'Dropped due to job relocation. Open to online batch.',date:'2026-04-01'},
+  {id:7,name:'Meera Krishnan',phone:'+91 32109 87654',email:'meera.k@gmail.com',course:'Digital Marketing',batch:'Weekend — July 2026',stage:'Active',source:'Instagram',fee:12000,paid:6000,enrolled:'2026-06-15',followup:'2026-07-25',tags:['emi'],notes:'Second installment due 25 July.',date:'2026-06-15'},
+  {id:8,name:'Karan Gupta',phone:'+91 21098 76543',email:'karan.g@email.com',course:'Python for Beginners',batch:'Weekend — Aug 2026',stage:'Inquiry',source:'Website',fee:8000,paid:0,enrolled:'',followup:'2026-07-19',tags:[],notes:'Found via SEO. Wants syllabus details.',date:'2026-07-14'},
+];
+let clients=[
+  {id:1,company:'TechNova Solutions',contact:'Deepa Rao',email:'deepa@technova.in',phone:'+91 80 1234 5678',course:'Data Analytics Workshop',teamSize:25,contract:300000,stage:'Won',followup:'',tags:['enterprise','repeat'],notes:'2nd engagement. Wants quarterly training.',date:'2026-05-10'},
+  {id:2,company:'StartupHive India',contact:'Rahul Joshi',email:'rahul@startuphive.in',phone:'+91 22 9876 5432',course:'Design Thinking Sprint',teamSize:12,contract:96000,stage:'Negotiation',followup:'2026-07-18',tags:['startup'],notes:'Budget approved. Finalising dates.',date:'2026-07-01'},
+  {id:3,company:'GlobalEdge Corp',contact:'Sunita Verma',email:'sunita@globaledge.com',phone:'+91 44 5555 6666',course:'Python for Data Science',teamSize:30,contract:420000,stage:'Prospect',followup:'2026-07-20',tags:['large-deal'],notes:'Demo scheduled for 20 July.',date:'2026-07-08'},
+];
+let nextStuId=9, nextCliId=4, editStuId=null, editCliId=null;
+let stuPage=1, cliPage=1;
+const PS=8;
+
+// ── HELPERS ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function followupClass(d){if(!d)return'';const dd=daysDiff(d);if(dd<0)return'overdue';if(dd<=2)return'due-soon';return'';}
+function followupLabel(d){if(!d)return'—';const dd=daysDiff(d);if(dd<0)return`⚠ ${fmtDate(d)}`;if(dd===0)return'Today';if(dd===1)return'Tomorrow';return fmtDate(d);}
+
+// ── TABS ──
+let activeTab='students';
+function showTab(id,el){
+  activeTab=id;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='pipeline') renderPipeline();
+  if(id==='channels') renderChannels();
+  if(id==='clients') renderClients();
+  if(id==='students') renderStudents();
+}
+
+// ── STUDENTS ──
+function filteredStudents(){
+  const q=(document.getElementById('stu-q').value||'').toLowerCase();
+  const sf=document.getElementById('stu-stage').value;
+  const cf=document.getElementById('stu-course').value;
+  const src=document.getElementById('stu-src').value;
+  const sb=document.getElementById('stu-sort').value;
+  let r=students.filter(s=>{
+    const m=!q||s.name.toLowerCase().includes(q)||s.email.toLowerCase().includes(q)||s.course.toLowerCase().includes(q)||s.phone.includes(q);
+    return m&&(!sf||s.stage===sf)&&(!cf||s.course===cf)&&(!src||s.source===src);
+  });
+  if(sb==='fee') r.sort((a,b)=>b.fee-a.fee);
+  else if(sb==='balance') r.sort((a,b)=>(b.fee-b.paid)-(a.fee-a.paid));
+  else if(sb==='followup') r.sort((a,b)=>(a.followup||'9999').localeCompare(b.followup||'9999'));
+  else if(sb==='enrolled') r.sort((a,b)=>(b.enrolled||'').localeCompare(a.enrolled||''));
+  else r.sort((a,b)=>a.name.localeCompare(b.name));
+  return r;
+}
+
+function renderStudents(){
+  // stats
+  const total=students.length;
+  const active=students.filter(s=>s.stage==='Active'||s.stage==='Enrolled').length;
+  const totalFees=students.reduce((s,c)=>s+c.fee,0);
+  const totalPaid=students.reduce((s,c)=>s+c.paid,0);
+  const leads=students.filter(s=>s.stage==='Inquiry'||s.stage==='Trial').length;
+  document.getElementById('stu-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-eyebrow">Total Students</div><div class="stat-val" style="color:var(--accent)">${total}</div><div class="stat-sub">all time</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Active / Enrolled</div><div class="stat-val" style="color:var(--green)">${active}</div><div class="stat-sub">currently enrolled</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Leads</div><div class="stat-val" style="color:var(--amber)">${leads}</div><div class="stat-sub">inquiry + trial</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Total Revenue</div><div class="stat-val" style="color:var(--green);font-size:17px">${inr(totalPaid)}</div><div class="stat-sub">collected</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Pending</div><div class="stat-val" style="color:var(--red);font-size:17px">${inr(totalFees-totalPaid)}</div><div class="stat-sub">outstanding balance</div></div>
+  `;
+  // course filter options
+  const courses=[...new Set(students.map(s=>s.course))].sort();
+  const cf=document.getElementById('stu-course');
+  const cur=cf.value;
+  cf.innerHTML=`<option value="">All Courses</option>`+courses.map(c=>`<option ${c===cur?'selected':''}>${c}</option>`).join('');
+  // nav count
+  document.getElementById('nc-students').textContent=total;
+  // table
+  const rows=filteredStudents();
+  const totalPg=Math.max(1,Math.ceil(rows.length/PS));
+  if(stuPage>totalPg) stuPage=1;
+  const slice=rows.slice((stuPage-1)*PS,stuPage*PS);
+  const tb=document.getElementById('stu-tbody');
+  if(!slice.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="empty-icon">🎓</div>No students match</div></td></tr>`;} else {
+    tb.innerHTML=slice.map(s=>{
+      const bal=s.fee-s.paid;
+      const fc=followupClass(s.followup);
+      return`<tr onclick="openDetail('student',${s.id})">
+        <td><div class="av-cell"><div class="av" style="background:${ac(s.name)}">${ini(s.name)}</div><div><div class="av-name">${s.name}</div><div class="av-sub">${s.phone}</div></div></div></td>
+        <td><div style="font-weight:600;font-size:13px">${s.course}</div><div style="font-size:11px;color:var(--muted)">${s.batch||'—'}</div></td>
+        <td><span class="badge b-${s.stage.toLowerCase().replace('-','')}">${s.stage}</span></td>
+        <td><span class="ch-pill">${s.source}</span></td>
+        <td class="amt">${inr(s.fee)}</td>
+        <td class="amt" style="color:var(--green)">${inr(s.paid)}</td>
+        <td class="amt ${bal>0?'bal-warn':'bal-ok'}">${bal>0?inr(bal):'✓ Paid'}</td>
+        <td class="${fc}" style="font-size:12px">${followupLabel(s.followup)}</td>
+        <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-edit" onclick="openStudentModal(${s.id})">Edit</button>
+          <button class="btn btn-sm btn-del" onclick="delStudent(${s.id})" style="margin-left:4px">Del</button>
+        </td>
+      </tr>`;}).join('');
+  }
+  // pag
+  let ph=`<span>${rows.length} student${rows.length!==1?'s':''}</span><div class="pag-btns">`;
+  ph+=`<button class="pb" onclick="gsp(${stuPage-1})" ${stuPage===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=totalPg;i++) ph+=`<button class="pb ${i===stuPage?'active':''}" onclick="gsp(${i})">${i}</button>`;
+  ph+=`<button class="pb" onclick="gsp(${stuPage+1})" ${stuPage===totalPg?'disabled':''}>›</button></div>`;
+  document.getElementById('stu-pag').innerHTML=ph;
+}
+function gsp(p){stuPage=p;renderStudents();}
+
+// ── STUDENT MODAL ──
+function openStudentModal(id){
+  editStuId=id||null;
+  document.getElementById('stu-modal-title').textContent=id?'Edit Student':'Add Student';
+  if(id){
+    const s=students.find(x=>x.id===id);
+    document.getElementById('sf_name').value=s.name;
+    document.getElementById('sf_phone').value=s.phone;
+    document.getElementById('sf_email').value=s.email||'';
+    document.getElementById('sf_course').value=s.course;
+    document.getElementById('sf_batch').value=s.batch||'';
+    document.getElementById('sf_stage').value=s.stage;
+    document.getElementById('sf_src').value=s.source;
+    document.getElementById('sf_fee').value=s.fee||'';
+    document.getElementById('sf_paid').value=s.paid||'';
+    document.getElementById('sf_enrolled').value=s.enrolled||'';
+    document.getElementById('sf_followup').value=s.followup||'';
+    document.getElementById('sf_tags').value=(s.tags||[]).join(', ');
+    document.getElementById('sf_notes').value=s.notes||'';
+  } else {
+    ['sf_name','sf_phone','sf_email','sf_course','sf_batch','sf_fee','sf_paid','sf_enrolled','sf_followup','sf_tags','sf_notes'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('sf_stage').value='Inquiry';
+    document.getElementById('sf_src').value='Instagram';
+  }
+  document.getElementById('stu-overlay').classList.add('open');
+}
+function closeStuModal(){document.getElementById('stu-overlay').classList.remove('open');}
+function saveStudent(){
+  const name=document.getElementById('sf_name').value.trim();
+  const phone=document.getElementById('sf_phone').value.trim();
+  if(!name||!phone){alert('Name and phone required.');return;}
+  const d={name,phone,email:document.getElementById('sf_email').value.trim(),course:document.getElementById('sf_course').value.trim()||'General',batch:document.getElementById('sf_batch').value.trim(),stage:document.getElementById('sf_stage').value,source:document.getElementById('sf_src').value,fee:parseFloat(document.getElementById('sf_fee').value)||0,paid:parseFloat(document.getElementById('sf_paid').value)||0,enrolled:document.getElementById('sf_enrolled').value,followup:document.getElementById('sf_followup').value,tags:document.getElementById('sf_tags').value.split(',').map(t=>t.trim()).filter(Boolean),notes:document.getElementById('sf_notes').value.trim(),date:today()};
+  if(editStuId) students=students.map(s=>s.id===editStuId?{...s,...d}:s);
+  else students.push({id:nextStuId++,...d});
+  closeStuModal();renderStudents();showToast(editStuId?'Student updated':'Student added ✓');autoSync();
+}
+function delStudent(id){if(confirm('Delete this student?')){students=students.filter(s=>s.id!==id);renderStudents();showToast('Student deleted');autoSync();}}
+
+// ── CLIENTS ──
+function filteredClients(){
+  const q=(document.getElementById('cli-q').value||'').toLowerCase();
+  const sf=document.getElementById('cli-stage').value;
+  return clients.filter(c=>{
+    const m=!q||c.company.toLowerCase().includes(q)||c.contact.toLowerCase().includes(q)||c.course.toLowerCase().includes(q);
+    return m&&(!sf||c.stage===sf);
+  });
+}
+function renderClients(){
+  const total=clients.length;
+  const pipeline=clients.filter(c=>c.stage==='Prospect'||c.stage==='Negotiation').reduce((s,c)=>s+c.contract,0);
+  const won=clients.filter(c=>c.stage==='Won').length;
+  const wonVal=clients.filter(c=>c.stage==='Won').reduce((s,c)=>s+c.contract,0);
+  const teamTotal=clients.reduce((s,c)=>s+(c.teamSize||0),0);
+  document.getElementById('cli-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-eyebrow">Total Clients</div><div class="stat-val" style="color:var(--accent)">${total}</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Won</div><div class="stat-val" style="color:var(--green)">${won}</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Pipeline Value</div><div class="stat-val" style="color:var(--amber);font-size:17px">${inr(pipeline)}</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Closed Revenue</div><div class="stat-val" style="color:var(--green);font-size:17px">${inr(wonVal)}</div></div>
+    <div class="stat-card"><div class="stat-eyebrow">Total Trainees</div><div class="stat-val" style="color:var(--blue)">${teamTotal}</div></div>
+  `;
+  document.getElementById('nc-clients').textContent=total;
+  const rows=filteredClients();
+  const totalPg=Math.max(1,Math.ceil(rows.length/PS));
+  if(cliPage>totalPg) cliPage=1;
+  const slice=rows.slice((cliPage-1)*PS,cliPage*PS);
+  const tb=document.getElementById('cli-tbody');
+  if(!slice.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-icon">🏢</div>No clients match</div></td></tr>`;} else {
+    tb.innerHTML=slice.map(c=>{
+      const fc=followupClass(c.followup);
+      return`<tr onclick="openDetail('client',${c.id})">
+        <td><div class="av-cell"><div class="av" style="background:${ac(c.company)}">${ini(c.company)}</div><div><div class="av-name">${c.company}</div><div class="av-sub">${c.contact} · ${c.email||c.phone||''}</div></div></div></td>
+        <td style="font-weight:600">${c.course}</td>
+        <td style="font-weight:700;font-variant-numeric:tabular-nums">${c.teamSize||'—'}</td>
+        <td class="amt" style="color:var(--accent)">${inr(c.contract)}</td>
+        <td><span class="badge b-${c.stage.toLowerCase()}">${c.stage}</span></td>
+        <td class="${fc}" style="font-size:12px">${followupLabel(c.followup)}</td>
+        <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-edit" onclick="openClientModal(${c.id})">Edit</button>
+          <button class="btn btn-sm btn-del" onclick="delClient(${c.id})" style="margin-left:4px">Del</button>
+        </td>
+      </tr>`;}).join('');
+  }
+  let ph=`<span>${rows.length} client${rows.length!==1?'s':''}</span><div class="pag-btns">`;
+  ph+=`<button class="pb" onclick="gcp(${cliPage-1})" ${cliPage===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=totalPg;i++) ph+=`<button class="pb ${i===cliPage?'active':''}" onclick="gcp(${i})">${i}</button>`;
+  ph+=`<button class="pb" onclick="gcp(${cliPage+1})" ${cliPage===totalPg?'disabled':''}>›</button></div>`;
+  document.getElementById('cli-pag').innerHTML=ph;
+}
+function gcp(p){cliPage=p;renderClients();}
+function openClientModal(id){
+  editCliId=id||null;
+  document.getElementById('cli-modal-title').textContent=id?'Edit Client':'Add Client';
+  if(id){
+    const c=clients.find(x=>x.id===id);
+    document.getElementById('cf_company').value=c.company;
+    document.getElementById('cf_contact').value=c.contact;
+    document.getElementById('cf_email').value=c.email||'';
+    document.getElementById('cf_phone').value=c.phone||'';
+    document.getElementById('cf_course').value=c.course;
+    document.getElementById('cf_team').value=c.teamSize||'';
+    document.getElementById('cf_contract').value=c.contract||'';
+    document.getElementById('cf_stage').value=c.stage;
+    document.getElementById('cf_followup').value=c.followup||'';
+    document.getElementById('cf_tags').value=(c.tags||[]).join(', ');
+    document.getElementById('cf_notes').value=c.notes||'';
+  } else {
+    ['cf_company','cf_contact','cf_email','cf_phone','cf_course','cf_team','cf_contract','cf_followup','cf_tags','cf_notes'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('cf_stage').value='Prospect';
+  }
+  document.getElementById('cli-overlay').classList.add('open');
+}
+function closeCliModal(){document.getElementById('cli-overlay').classList.remove('open');}
+function saveClient(){
+  const company=document.getElementById('cf_company').value.trim();
+  const contact=document.getElementById('cf_contact').value.trim();
+  if(!company||!contact){alert('Company and contact required.');return;}
+  const d={company,contact,email:document.getElementById('cf_email').value.trim(),phone:document.getElementById('cf_phone').value.trim(),course:document.getElementById('cf_course').value.trim(),teamSize:parseInt(document.getElementById('cf_team').value)||0,contract:parseFloat(document.getElementById('cf_contract').value)||0,stage:document.getElementById('cf_stage').value,followup:document.getElementById('cf_followup').value,tags:document.getElementById('cf_tags').value.split(',').map(t=>t.trim()).filter(Boolean),notes:document.getElementById('cf_notes').value.trim(),date:today()};
+  if(editCliId) clients=clients.map(c=>c.id===editCliId?{...c,...d}:c);
+  else clients.push({id:nextCliId++,...d});
+  closeCliModal();renderClients();showToast(editCliId?'Client updated':'Client added ✓');autoSync();
+}
+function delClient(id){if(confirm('Delete this client?')){clients=clients.filter(c=>c.id!==id);renderClients();showToast('Client deleted');autoSync();}}
+
+// ── PIPELINE ──
+function renderPipeline(){
+  const stages=['Inquiry','Trial','Enrolled','Active','Completed','Dropped'];
+  const colors={'Inquiry':'var(--blue)','Trial':'var(--amber)','Enrolled':'var(--accent)','Active':'var(--green)','Completed':'var(--slate)','Dropped':'var(--red)'};
+  document.getElementById('kanban').innerHTML=stages.map(st=>{
+    const grp=students.filter(s=>s.stage===st);
+    const total=grp.reduce((s,c)=>s+c.fee,0);
+    return`<div class="kol">
+      <div class="kol-head">
+        <div class="kol-title" style="color:${colors[st]}">${st}</div>
+        <div class="kol-count">${grp.length} · ${inr(total)}</div>
+      </div>
+      <div class="kol-body">${grp.length?grp.map(s=>`
+        <div class="kcard" onclick="openDetail('student',${s.id})">
+          <div class="kcard-name">${s.name}</div>
+          <div class="kcard-course">${s.course}</div>
+          <div class="kcard-amt" style="color:${colors[st]}">${inr(s.fee)}</div>
+          ${s.followup?`<div style="font-size:10px;color:var(--muted);margin-top:3px" class="${followupClass(s.followup)}">📅 ${followupLabel(s.followup)}</div>`:''}
+        </div>`).join(''):`<div style="font-size:12px;color:var(--muted);padding:8px;text-align:center">Empty</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CHANNELS ──
+function renderChannels(){
+  const srcs={};
+  students.forEach(s=>{
+    if(!srcs[s.source]) srcs[s.source]={count:0,fee:0,paid:0,active:0};
+    srcs[s.source].count++;
+    srcs[s.source].fee+=s.fee;
+    srcs[s.source].paid+=s.paid;
+    if(s.stage==='Active'||s.stage==='Enrolled') srcs[s.source].active++;
+  });
+  const sorted=Object.entries(srcs).sort((a,b)=>b[1].paid-a[1].paid);
+  const maxPaid=sorted[0]?.[1].paid||1;
+  document.getElementById('ch-grid').innerHTML=sorted.map(([src,d])=>`
+    <div class="ch-card">
+      <div class="ch-name">${src}</div>
+      <div class="ch-bar-row">
+        <div style="font-size:12px;color:var(--muted);min-width:80px">Revenue</div>
+        <div class="ch-bar-wrap"><div class="ch-bar-fill" style="width:${Math.round(d.paid/maxPaid*100)}%"></div></div>
+        <div style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums">${inr(d.paid)}</div>
+      </div>
+      <div class="ch-stats">
+        <div class="ch-stat"><div class="ch-stat-val" style="color:var(--accent)">${d.count}</div><div style="color:var(--muted)">students</div></div>
+        <div class="ch-stat"><div class="ch-stat-val" style="color:var(--green)">${d.active}</div><div style="color:var(--muted)">active</div></div>
+        <div class="ch-stat"><div class="ch-stat-val" style="color:var(--red)">${inr(d.fee-d.paid)}</div><div style="color:var(--muted)">pending</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── DETAIL PANEL ──
+function openDetail(type, id){
+  const dp=document.getElementById('dp');
+  const dc=document.getElementById('dp-content');
+  if(type==='student'){
+    const s=students.find(x=>x.id===id);
+    const bal=s.fee-s.paid;
+    dc.innerHTML=`
+      <div class="dp-head">
+        <div class="dp-head-left">
+          <div class="av" style="background:${ac(s.name)};width:40px;height:40px;font-size:15px">${ini(s.name)}</div>
+          <div><div class="dp-name">${s.name}</div><div class="dp-meta">${s.phone}${s.email?' · '+s.email:''}</div></div>
+        </div>
+        <button class="dp-close" onclick="closeDetail()">×</button>
+      </div>
+      <div class="dp-body">
+        <div>
+          <div class="dp-sec-title">Overview</div>
+          <div class="dp-row"><span class="dp-key">Stage</span><span class="badge b-${s.stage.toLowerCase().replace('-','')}">${s.stage}</span></div>
+          <div class="dp-row"><span class="dp-key">Course</span><span class="dp-val">${s.course}</span></div>
+          <div class="dp-row"><span class="dp-key">Batch</span><span class="dp-val">${s.batch||'—'}</span></div>
+          <div class="dp-row"><span class="dp-key">Source</span><span class="dp-val">${s.source}</span></div>
+          <div class="dp-row"><span class="dp-key">Enrolled</span><span class="dp-val">${fmtDate(s.enrolled)||'Not yet'}</span></div>
+        </div>
+        <div>
+          <div class="dp-sec-title">Financials</div>
+          <div class="dp-row"><span class="dp-key">Total Fees</span><span class="dp-val">${inr(s.fee)}</span></div>
+          <div class="dp-row"><span class="dp-key">Paid</span><span class="dp-val" style="color:var(--green)">${inr(s.paid)}</span></div>
+          <div class="dp-row"><span class="dp-key">Balance</span><span class="dp-val ${bal>0?'bal-warn':'bal-ok'}">${bal>0?inr(bal):'Fully Paid ✓'}</span></div>
+        </div>
+        <div>
+          <div class="dp-sec-title">Follow-up</div>
+          <div class="dp-row"><span class="dp-key">Next Follow-up</span><span class="dp-val ${followupClass(s.followup)}">${followupLabel(s.followup)}</span></div>
+        </div>
+        ${s.tags&&s.tags.length?`<div><div class="dp-sec-title">Tags</div><div class="dp-tags">${s.tags.map(t=>`<span class="dp-tag">${t}</span>`).join('')}</div></div>`:''}
+        ${s.notes?`<div><div class="dp-sec-title">Notes</div><div class="dp-note">${s.notes}</div></div>`:''}
+      </div>
+      <div class="dp-actions">
+        <button class="btn btn-edit" onclick="closeDetail();openStudentModal(${s.id})">Edit</button>
+        <button class="btn btn-del" onclick="closeDetail();delStudent(${s.id})">Delete</button>
+      </div>`;
+  } else {
+    const c=clients.find(x=>x.id===id);
+    dc.innerHTML=`
+      <div class="dp-head">
+        <div class="dp-head-left">
+          <div class="av" style="background:${ac(c.company)};width:40px;height:40px;font-size:15px">${ini(c.company)}</div>
+          <div><div class="dp-name">${c.company}</div><div class="dp-meta">${c.contact}${c.email?' · '+c.email:''}</div></div>
+        </div>
+        <button class="dp-close" onclick="closeDetail()">×</button>
+      </div>
+      <div class="dp-body">
+        <div>
+          <div class="dp-sec-title">Overview</div>
+          <div class="dp-row"><span class="dp-key">Stage</span><span class="badge b-${c.stage.toLowerCase()}">${c.stage}</span></div>
+          <div class="dp-row"><span class="dp-key">Course / Program</span><span class="dp-val">${c.course}</span></div>
+          <div class="dp-row"><span class="dp-key">Team Size</span><span class="dp-val">${c.teamSize||'—'}</span></div>
+          <div class="dp-row"><span class="dp-key">Contract Value</span><span class="dp-val" style="color:var(--accent)">${inr(c.contract)}</span></div>
+          <div class="dp-row"><span class="dp-key">Phone</span><span class="dp-val">${c.phone||'—'}</span></div>
+          <div class="dp-row"><span class="dp-key">Follow-up</span><span class="dp-val ${followupClass(c.followup)}">${followupLabel(c.followup)}</span></div>
+        </div>
+        ${c.tags&&c.tags.length?`<div><div class="dp-sec-title">Tags</div><div class="dp-tags">${c.tags.map(t=>`<span class="dp-tag">${t}</span>`).join('')}</div></div>`:''}
+        ${c.notes?`<div><div class="dp-sec-title">Notes</div><div class="dp-note">${c.notes}</div></div>`:''}
+      </div>
+      <div class="dp-actions">
+        <button class="btn btn-edit" onclick="closeDetail();openClientModal(${c.id})">Edit</button>
+        <button class="btn btn-del" onclick="closeDetail();delClient(${c.id})">Delete</button>
+      </div>`;
+  }
+  document.getElementById('dp-overlay').classList.add('open');
+  dp.classList.add('open');
+}
+function closeDetail(){
+  document.getElementById('dp-overlay').classList.remove('open');
+  document.getElementById('dp').classList.remove('open');
+}
+
+// ── SHEETS SYNC ──
+function exportCSV(type){
+  let csv='', filename='';
+  if(type==='students'){
+    filename='students.csv';
+    csv='Name,Phone,Email,Course,Batch,Stage,Source,Fee,Paid,Balance,Enrolled,Follow-up,Notes\n';
+    students.forEach(s=>{
+      csv+=`"${s.name}","${s.phone}","${s.email||''}","${s.course}","${s.batch||''}","${s.stage}","${s.source}",${s.fee},${s.paid},${s.fee-s.paid},"${s.enrolled||''}","${s.followup||''}","${(s.notes||'').replace(/"/g,'""')}"\n`;
+    });
+  } else {
+    filename='clients.csv';
+    csv='Company,Contact,Email,Phone,Course,Team Size,Contract,Stage,Follow-up,Notes\n';
+    clients.forEach(c=>{
+      csv+=`"${c.company}","${c.contact}","${c.email||''}","${c.phone||''}","${c.course}",${c.teamSize||0},${c.contract},"${c.stage}","${c.followup||''}","${(c.notes||'').replace(/"/g,'""')}"\n`;
+    });
+  }
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=filename; a.click();
+  showToast(`Exported ${filename} ✓`);
+}
+
+// ── SHEETS AUTO-SYNC ──
+function saveSheetUrl(){
+  const url=document.getElementById('sheets-url').value.trim();
+  if(url) localStorage.setItem('crm_sheets_url',url);
+}
+
+function loadSheetUrl(){
+  const saved=localStorage.getItem('crm_sheets_url');
+  if(saved){ const el=document.getElementById('sheets-url'); if(el) el.value=saved; }
+}
+
+function setSyncStatus(state, msg){
+  const el=document.getElementById('sync-status');
+  if(!el) return;
+  const styles={
+    syncing:  {bg:'var(--amber-bg)',  color:'var(--amber)', icon:'⟳'},
+    ok:       {bg:'var(--green-bg)',  color:'var(--green)', icon:'✓'},
+    error:    {bg:'var(--red-bg)',    color:'var(--red)',   icon:'✗'},
+  };
+  const s=styles[state]||styles.ok;
+  el.style.display='flex';
+  el.style.background=s.bg;
+  el.style.color=s.color;
+  el.innerHTML=`<span style="font-size:16px">${s.icon}</span> ${msg}`;
+}
+
+async function pushToSheets(manual){
+  const url=(document.getElementById('sheets-url')?.value||'').trim() || localStorage.getItem('crm_sheets_url')||'';
+  if(!url){ if(manual) showToast('Paste your Apps Script URL first'); return; }
+  setSyncStatus('syncing','Syncing to Google Sheets…');
+  try {
+    const res=await fetch(url,{
+      method:'POST',
+      mode:'no-cors',
+      body:JSON.stringify({students,clients}),
+      headers:{'Content-Type':'application/json'}
+    });
+    setSyncStatus('ok','Synced to Google Sheets ✓ — ' + new Date().toLocaleTimeString());
+    if(manual) showToast('Synced to Google Sheets ✓');
+  } catch(e){
+    setSyncStatus('error','Sync failed — check your Apps Script URL');
+    if(manual) showToast('Sync failed');
+  }
+}
+
+function autoSync(){ pushToSheets(false); }
+
+function copyScript(){
+  const code=document.getElementById('appsScriptCode').textContent;
+  navigator.clipboard.writeText(code).then(()=>showToast('Script copied ✓'));
+}
+
+// close modals on backdrop click
+document.getElementById('stu-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeStuModal();});
+document.getElementById('cli-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCliModal();});
+
+// init
+loadSheetUrl();
+renderStudents();
+renderClients();
+</script>
